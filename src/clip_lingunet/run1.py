@@ -11,9 +11,9 @@ import os
 import copy
 import json
 
-from src.lingunet.lingunet_cfg import parse_args
-from src.lingunet.loader import Loader
-from src.lingunet.lingunet_model import LingUNet, load_oldArgs, convert_model_to_state
+from src.clip_lingunet.lingunet_cfg import parse_args
+from src.clip_lingunet.loader import Loader
+from src.clip_lingunet.lingunet_model import LingUNet, load_oldArgs, convert_model_to_state
 from src.utils import accuracy, distance_from_pixels, evaluate
 
 
@@ -75,21 +75,6 @@ class LingUNetAgent:
             batch_maps.to(device=self.args.device),
             batch_texts.to(device=self.args.device),
             batch_seq_lengths.to(device=self.args.device),
-        )
-
-        """ calculate loss """
-        batch_target = batch_target.view(B * num_maps, H, W)
-        batch_target = (
-            nn.functional.interpolate(
-                batch_target.unsqueeze(1),
-                (self.args.ds_height, self.args.ds_width),
-                mode="bilinear",
-            )
-            .squeeze(1)
-            .float()
-        ).to(device=self.args.device)
-        batch_target = batch_target.view(
-            B, num_maps, batch_target.size()[-2], batch_target.size()[-1]
         )
 
         loss = self.loss_func(preds, batch_target)

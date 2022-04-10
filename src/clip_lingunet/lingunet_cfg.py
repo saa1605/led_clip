@@ -37,23 +37,15 @@ parser.add_argument("--ds_width_crop", type=int, default=93)
 parser.add_argument("--ds_height", type=int, default=57)
 parser.add_argument("--ds_width", type=int, default=98)
 parser.add_argument("--max_floors", type=int, default=5)
-# CNN
-parser.add_argument("--num_conv_layers", type=int, default=1)
-parser.add_argument("--conv_dropout", type=float, default=0.0)
-parser.add_argument("--deconv_dropout", type=float, default=0.0)
-parser.add_argument("--res_connect", default=True, action="store_true")
-# RNN
-parser.add_argument("--encoder", type=str, default="rnn", help="Options: rnn or hrn")
-parser.add_argument("--embed_size", type=int, default=300)
-parser.add_argument("--rnn_hidden_size", type=int, default=300)
-parser.add_argument("--num_rnn_layers", type=int, default=1)
-parser.add_argument("--bidirectional", default=True, action="store_true")
-parser.add_argument("--embed_dropout", type=float, default=0.5)
-parser.add_argument("--num_rnn2conv_layers", type=int, default=1)
-# Final linear layers
-parser.add_argument("--num_linear_hidden_layers", type=int, default=1)
-parser.add_argument("--linear_hidden_size", type=int, default=128)
-parser.add_argument("--num_lingunet_layers", type=int, default=3)
+
+# CLIP 
+parser.add_argument("--num_maps", type=int, default=5)
+parser.add_argument("--output_dim", type=int, default=3)
+parser.add_argument("--input_dim", type=int, default=2048)
+parser.add_argument("--batchnorm", type=bool, default=True)
+parser.add_argument("--lang_fusion_type", type=str, default="mult")
+parser.add_argument("--bilinear", type=bool, default=True)
+
 
 # Params
 parser.add_argument("--print_every", type=int, default=100)

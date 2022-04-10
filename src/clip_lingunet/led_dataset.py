@@ -35,10 +35,15 @@ class LEDDataset(Dataset):
         self.levels = levels
         self.annotation_ids = annotation_ids
         self.mesh2meters = json.load(open(args.image_dir + "pix2meshDistance.json"))
-        self.image_size = [
+        self.output_image_size = [
             3,
             int(700 * self.args.ds_percent),
             int(1200 * self.args.ds_percent),
+        ]
+        self.image_size = [
+            3,
+            224,
+            224
         ]
 
         self.preprocess_data_aug = transforms.Compose(
@@ -46,8 +51,8 @@ class LEDDataset(Dataset):
                 transforms.ColorJitter(brightness=0.5, hue=0.1, saturation=0.1),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406, 0.555],
-                    std=[0.229, 0.224, 0.225, 0.222],
+                    mean=[0.48145466, 0.4578275, 0.40821073],
+                    std=[0.26862954, 0.26130258, 0.27577711],
                 ),
             ]
         )
@@ -55,8 +60,8 @@ class LEDDataset(Dataset):
             [
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406, 0.555],
-                    std=[0.229, 0.224, 0.225, 0.222],
+                    mean=[0.48145466, 0.4578275, 0.40821073],
+                    std=[0.26862954, 0.26130258, 0.27577711],
                 ),
             ]
         )
@@ -95,7 +100,7 @@ class LEDDataset(Dataset):
 
     def create_target(self, index, location, mesh_conversion):
         gaussian_target = np.zeros(
-            (self.args.max_floors, self.image_size[1], self.image_size[2])
+            (self.args.max_floors, self.output_image_size[1], self.output_image_size[2])
         )
         gaussian_target[int(self.levels[index]), location[0], location[1]] = 1
         gaussian_target[int(self.levels[index]), :, :] = gaussian_filter(
@@ -113,7 +118,7 @@ class LEDDataset(Dataset):
         location = copy.deepcopy(self.locations[index])
         location = np.round(np.asarray(location) * self.args.ds_percent).astype(int)
         mesh_conversion = self.mesh_conversions[index] * self.args.ds_percent
-        text = torch.LongTensor(self.texts[index])
+        text = self.texts[index]
         seq_length = np.array(self.seq_lengths[index])
         maps, conversions = self.gather_all_floors(index)
         target = self.create_target(index, location, mesh_conversion)
