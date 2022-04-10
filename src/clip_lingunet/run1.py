@@ -9,6 +9,7 @@ import numpy as np
 import os.path
 import os
 import copy
+import random 
 import json
 
 from src.clip_lingunet.lingunet_cfg import parse_args
@@ -16,11 +17,19 @@ from src.clip_lingunet.loader import Loader
 from src.clip_lingunet.lingunet_model import LingUNet, load_oldArgs, convert_model_to_state
 from src.utils import accuracy, distance_from_pixels, evaluate
 
+import wandb
+
+# Ensure deterministic behavior
+torch.backends.cudnn.deterministic = True
+random.seed(hash("setting random seeds") % 2**32 - 1)
+np.random.seed(hash("improves reproducibility") % 2**32 - 1)
+torch.manual_seed(hash("by removing stochasticity") % 2**32 - 1)
+torch.cuda.manual_seed_all(hash("so runs are repeatable") % 2**32 - 1)
+
 
 class LingUNetAgent:
     def __init__(self, args):
         self.args = args
-        print(args)
         self.device = (
             torch.device(f"cuda:{args.cuda}")
             if torch.cuda.is_available()

@@ -450,15 +450,12 @@ def load_oldArgs(args, oldArgs):
     return args
 
 
-def convert_model_to_state(model, optimizer, args, rnn_args):
+def convert_model_to_state(model, optimizer, args):
+    
     state = {
         "args": args,
-        "rnn_args": rnn_args,
-        "state_dict": {},
+        "state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict()
     }
-    # use copies instead of references
-    for k, v in model.state_dict().items():
-        state["state_dict"][k] = v.clone().to(torch.device("cpu"))
 
     return state 
