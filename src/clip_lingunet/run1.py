@@ -165,7 +165,7 @@ class LingUNetAgent:
         assert self.args.num_lingunet_layers is not None
         rnn_args = {"input_size": len(self.loader.vocab)}
 
-        self.model = LingUNet(rnn_args, args)
+        self.model = LingUNet(args)
         num_params = sum(
             [p.numel() for p in self.model.parameters() if p.requires_grad]
         )
