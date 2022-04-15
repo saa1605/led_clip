@@ -1,2 +1,9 @@
 data/
 docs/
+__pycache__
+*/__pycache__
+**/__pycache__/
+logs/checkpoints
+logs/tensorboard
+logs/predictions
+*/*/__pycache__
