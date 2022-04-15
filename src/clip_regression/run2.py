@@ -9,27 +9,18 @@ import numpy as np
 import os.path
 import os
 import copy
-import random 
 import json
 
-from src.clip_lingunet.lingunet_cfg import parse_args
-from src.clip_lingunet.loader import Loader
-from src.clip_lingunet.lingunet_model import LingUNet, load_oldArgs, convert_model_to_state
+from src.lingunet.lingunet_cfg import parse_args
+from src.lingunet.loader import Loader
+from src.lingunet.lingunet_model import LingUNet, load_oldArgs, convert_model_to_state
 from src.utils import accuracy, distance_from_pixels, evaluate
-
-import wandb
-
-# Ensure deterministic behavior
-torch.backends.cudnn.deterministic = True
-random.seed(hash("setting random seeds") % 2**32 - 1)
-np.random.seed(hash("improves reproducibility") % 2**32 - 1)
-torch.manual_seed(hash("by removing stochasticity") % 2**32 - 1)
-torch.cuda.manual_seed_all(hash("so runs are repeatable") % 2**32 - 1)
 
 
 class LingUNetAgent:
     def __init__(self, args):
         self.args = args
+        print(args)
         self.device = (
             torch.device(f"cuda:{args.cuda}")
             if torch.cuda.is_available()
@@ -52,9 +43,9 @@ class LingUNetAgent:
 
     def run_test(self):
         print("Starting Evaluation...")
-        oldArgs, state_dict, opt_dict = torch.load(self.args.eval_ckpt).values()
-        self.args = load_oldArgs(self.args, vars(oldArgs))
-        self.model = LingUNet(self.args)
+        oldArgs, rnn_args, state_dict, optimizer_dict = torch.load(self.args.eval_ckpt).values()
+        self.args = load_oldArgs(self.args, oldArgs)
+        self.model = LingUNet(rnn_args, self.args)
         if torch.cuda.device_count() > 1:
             print("Let's use", torch.cuda.device_count(), "GPUs!")
             self.model = nn.DataParallel(self.model)
@@ -82,9 +73,12 @@ class LingUNetAgent:
         B, num_maps, C, H, W = batch_maps.size()
         preds = self.model(
             batch_maps.to(device=self.args.device),
-            batch_texts,
+            batch_texts.to(device=self.args.device),
+            batch_seq_lengths.to(device=self.args.device),
         )
-        batch_target = batch_target.view(B * num_maps, int(700 * self.args.ds_percent), int(1200 * self.args.ds_percent))
+
+        """ calculate loss """
+        batch_target = batch_target.view(B * num_maps, H, W)
         batch_target = (
             nn.functional.interpolate(
                 batch_target.unsqueeze(1),
@@ -97,7 +91,6 @@ class LingUNetAgent:
         batch_target = batch_target.view(
             B, num_maps, batch_target.size()[-2], batch_target.size()[-1]
         )
-
 
         loss = self.loss_func(preds, batch_target)
         le, ep = distance_from_pixels(
@@ -175,8 +168,10 @@ class LingUNetAgent:
         )
 
     def run_train(self):
+        assert self.args.num_lingunet_layers is not None
+        rnn_args = {"input_size": len(self.loader.vocab)}
 
-        self.model = LingUNet(args)
+        self.model = LingUNet(rnn_args, args)
         num_params = sum(
             [p.numel() for p in self.model.parameters() if p.requires_grad]
         )
@@ -238,7 +233,7 @@ class LingUNetAgent:
                             self.args.run_name, acc0m, epoch
                         ),
                     )
-                    state = convert_model_to_state(best_model, best_optim, args)
+                    state = convert_model_to_state(best_model, best_optim, args, rnn_args)
                     torch.save(state, save_path)
                     
                 best_unseen_acc = acc0m
@@ -254,8 +249,8 @@ class LingUNetAgent:
     def load_data(self):
         self.loader = Loader(args)
         # self.loader.build_dataset(file="train_expanded_data.json")
-        # self.loader.build_dataset(file="train_augmented_data.json")
-        self.loader.build_dataset(file="train_data.json")
+        self.loader.build_dataset(file="train_augmented_data.json")
+        # self.loader.build_dataset(file="train_data.json")
         # self.loader.build_dataset(file="train_debug_data.json")
         self.loader.build_dataset(file="valSeen_data.json")
         # self.loader.build_dataset(file="valSeen_debug_data.json")
