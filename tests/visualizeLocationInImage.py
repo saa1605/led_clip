@@ -13,16 +13,12 @@ scan_name = json_data[index]['scanName']
 image = cv2.imread(f'../data/floorplans/floor_{floor}/{scan_name}_{floor}.png')
 
 scale_percent = 65  # percent of original size
-width = int(image.shape[1] * scale_percent / 100)
-height = int(image.shape[0] * scale_percent / 100)
-dim = (width, height)
-print(dim)
+x = int(x * (224/image.shape[1]))
+y = int(y * (224/image.shape[0]))
 # resize image
-# image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_CUBIC)
 
-
-# x = int(x * 0.65)
-# y = int(y * 0.65)
+print(x, y)
 
 image = cv2.circle(image, (x, y), radius=5, color=(0, 0, 255), thickness=-1)
 
