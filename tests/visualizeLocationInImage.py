@@ -16,11 +16,23 @@ scale_percent = 65  # percent of original size
 x = int(x * (224/image.shape[1]))
 y = int(y * (224/image.shape[0]))
 # resize image
-image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_CUBIC)
+# image = cv2.resize(image, (224, 224), interpolation=cv2.INTER_CUBIC)
+
+def center_crop(img, dim):
+    width, height = img.shape[1], img.shape[0]
+    #process crop width and height for max available dimension
+    crop_width = dim[0] if dim[0]<img.shape[1] else img.shape[1]
+    crop_height = dim[1] if dim[1]<img.shape[0] else img.shape[0] 
+    mid_x, mid_y = int(width/2), int(height/2)
+    cw2, ch2 = int(crop_width/2), int(crop_height/2) 
+    crop_img = img[mid_y-ch2:mid_y+ch2, mid_x-cw2:mid_x+cw2]
+    return crop_img
+
+image = center_crop(image, (448, 448))
 
 print(x, y)
 
-image = cv2.circle(image, (x, y), radius=5, color=(0, 0, 255), thickness=-1)
+# image = cv2.circle(image, (x, y), radius=5, color=(0, 0, 255), thickness=-1)
 
 
 cv2.imshow('imageWithLocation', image)

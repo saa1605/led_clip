@@ -6,7 +6,6 @@ import numpy as np
 import math
 import torch.nn as nn
 import os
-from shapely.geometry import Point, Polygon
 
 
 def evaluate(args, splitFile, run_name):
@@ -106,6 +105,7 @@ def distance_from_pixels(args, preds, mesh_conversions, info_elem, mode):
             pred.unsqueeze(1), (700, 1200), mode="bilinear"
         ).squeeze(1)[:total_floors]
         pred_coord = np.unravel_index(pred.argmax(), pred.size())
+        pred_coord = preds
         convers = conversion.view(args.max_floors, 1, 1)[pred_coord[0].item()]
         pred_viewpoint = snap_to_grid(
             geodistance_nodes[sn],
@@ -121,20 +121,20 @@ def distance_from_pixels(args, preds, mesh_conversions, info_elem, mode):
         episode_predictions.append([id, pred_viewpoint])
     return distances, episode_predictions
 
-def annotateImageWithSegmentationData(image, annotationDict):
-    image = np.array(image)
-    print(image.shape)
-    segmentChannel = np.zeros(image.shape)
-    imageShape = image.shape
+# def annotateImageWithSegmentationData(image, annotationDict):
+#     image = np.array(image)
+#     print(image.shape)
+#     segmentChannel = np.zeros(image.shape)
+#     imageShape = image.shape
 
-    for r, c in image:
-        point = Point(r, c)
-        for segment in annotationDict:
-            polygon = Polygon(segment['shapes']['points'])
-            if polygon.contains(point):
-                segmentChannel[r, c] = segment['shapes']['label']
-                break 
-    return segmentChannel
+#     for r, c in image:
+#         point = Point(r, c)
+#         for segment in annotationDict:
+#             polygon = Polygon(segment['shapes']['points'])
+#             if polygon.contains(point):
+#                 segmentChannel[r, c] = segment['shapes']['label']
+#                 break 
+#     return segmentChannel
 
 
 class dotdict(dict):
