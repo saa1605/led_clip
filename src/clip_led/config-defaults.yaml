@@ -1,0 +1,34 @@
+# config = {
+#     # Data Paths
+#     'train_path' : '../../data/way_splits/train_data.json',
+#     'valid_seen_path' : '../../data/way_splits/valSeen_data.json',
+#     'valid_unseen_path': '../../data/way_splits/valUnseen_data.json',
+#     'mesh2meters': '../../data/floorplans/pix2meshDistance.json',
+#     'image_dir': '../../data/floorplans/',
+
+#     'device': 'cpu',
+
+#     # Hyper Parameters
+#     'max_floors': 5,
+
+#     # Image Parameters
+#     'image_size': [3, 224, 224],
+#     # 'image_size': [3, 700, 1200],
+#     'original_image_size': [3, 700, 1200],
+
+# }
+
+train_path:
+  value: ../../data/way_splits/train_data.json
+
+valid_seen_path:
+  value: ../../data/way_splits/valSeen_data.json
+
+valid_unseen_path:
+  value: ../../data/way_splits/valUnseen_data.json
+
+mesh2meters:
+  value: ../../data/way_splits/pix2meshDistance.json
+
+image_dir:
+  value: ../../data/floorplans/
