@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-
+import sys
 
 import tqdm
 import numpy as np
@@ -84,19 +84,22 @@ class LingUNetAgent:
             batch_maps.to(device=self.args.device),
             batch_texts,
         )
-        batch_target = batch_target.view(B * num_maps, int(700 * self.args.ds_percent), int(1200 * self.args.ds_percent))
-        batch_target = (
-            nn.functional.interpolate(
-                batch_target.unsqueeze(1),
-                (self.args.ds_height, self.args.ds_width),
-                mode="bilinear",
-            )
-            .squeeze(1)
-            .float()
-        ).to(device=self.args.device)
-        batch_target = batch_target.view(
-            B, num_maps, batch_target.size()[-2], batch_target.size()[-1]
-        )
+        # print(batch_target.shape)
+        # # sys.exit(0)
+        # batch_target = batch_target.view(B * num_maps, 448, 448)
+        # batch_target = (
+        #     nn.functional.interpolate(
+        #         batch_target.unsqueeze(1),
+        #         (self.args.ds_height, self.args.ds_width),
+        #         mode="bilinear",
+        #     )
+        #     .squeeze(1)
+        #     .float()
+        # ).to(device=self.args.device)
+        # batch_target = batch_target.view(
+        #     B, num_maps, batch_target.size()[-2], batch_target.size()[-1]
+        # )
+        batch_target = batch_target.to(self.args.device)
 
 
         loss = self.loss_func(preds, batch_target)

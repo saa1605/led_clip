@@ -219,7 +219,7 @@ class LingUNet(nn.Module):
         )
 
         self.conv2 = nn.Sequential(
-            nn.Conv2d(16, self.output_dim, kernel_size=1)
+            nn.Conv2d(32, self.output_dim, kernel_size=1)
         )
 
     def encode_image(self, img):
@@ -269,8 +269,9 @@ class LingUNet(nn.Module):
         x = self.lang_fuser3(x, l_input, x2_mask=l_mask, x2_proj=self.lang_proj3)
         x = self.up3(x, im[-4])
 
-        for layer in [self.layer1, self.layer2, self.layer3, self.conv2]:
+        for layer in [self.layer1, self.layer2, self.conv2]:
             x = layer(x)
+            print(x.size())
 
         # x = F.interpolate(x, size=(780, 455), mode='bilinear')
         h, w = x.size()[-2], x.size()[-1]
