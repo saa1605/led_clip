@@ -177,3 +177,65 @@ def get_metrics(y_pred, y_true):
         "pred_mean": np.mean(y_pred),
     }
 
+
+# def visualize_data(self, index):
+#     all_maps = np.zeros((
+#         self.config['max_floors'],
+#         self.config["image_size"][1],
+#         self.config["image_size"][2],
+#         self.config["image_size"][0],
+#     )
+#     )
+#     scan_name = self.data[index]['scanName']
+#     floors = self.mesh2meters[scan_name].keys()
+#     images = []
+#     for enum, floor in enumerate(floors):
+#         img = Image.open(f'{self.image_dir}floor_{floor}/{scan_name}_{floor}.png').convert('RGB')
+#         all_maps[enum] = torch.permute(self.preprocess_visualize(img)[:3, :, :], (1, 2, 0)).cpu().numpy()
+
+#     # create figure
+#     fig = plt.figure(figsize=(20, 15))
+    
+#     # setting values to rows and column variables
+#     rows = 3
+#     columns = 2
+#     # Adds a subplot at the 1st position
+#     fig.add_subplot(rows, columns, 1)
+    
+#     # showing image
+#     plt.imshow(all_maps[0])
+#     plt.Circle((100, 100), 50, color='k')
+#     plt.axis('off')
+#     plt.title("First")
+    
+#     # Adds a subplot at the 2nd position
+#     fig.add_subplot(rows, columns, 2)
+    
+#     # showing image
+#     plt.imshow(all_maps[1])
+#     plt.axis('off')
+#     plt.title("Second")
+    
+#     # Adds a subplot at the 3rd position
+#     fig.add_subplot(rows, columns, 3)
+    
+#     # showing image
+#     plt.imshow(all_maps[2])
+#     plt.axis('off')
+#     plt.title("Third")
+    
+#     # Adds a subplot at the 4th position
+#     fig.add_subplot(rows, columns, 4)
+    
+#     # showing image
+#     plt.imshow(all_maps[3])
+#     plt.axis('off')
+#     plt.title("Fourth")
+
+#     # Adds a subplot at the 4th position
+#     fig.add_subplot(rows, columns, 5)
+    
+#     # showing image
+#     plt.imshow(all_maps[4])
+#     plt.axis('off')
+#     plt.title("Fourth")
