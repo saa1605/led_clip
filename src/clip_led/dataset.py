@@ -151,11 +151,17 @@ class LEDDataset(Dataset):
         maps, conversions = self.gather_all_floors(index)
         dialogs = clip.tokenize(self.join_dialog(index), truncate=True)
         targets = self.create_target(index, target_x, target_y, target_floor)
+        scan_names = self.data[index]['scanName']
+        episode_ids = self.data[index]['episodeId']
+        true_viewpoints = self.data[index]['finalLocation']['viewPoint']
 
         return {
             'maps': maps,
             'target_maps': targets, 
             'conversions': conversions,
-            'dialogs': dialogs
+            'dialogs': dialogs,
+            'scan_names': scan_names, 
+            'episode_ids': episode_ids,
+            'true_viewpoints': true_viewpoints,
         }
             

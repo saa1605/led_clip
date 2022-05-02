@@ -31,6 +31,11 @@ def evaluate(args, splitFile, run_name):
         f"Acc@10m: {sum(distance_scores <= 10) * 1.0 / len(distance_scores):.4f}",
     )
 
+def assign_metrics(metrics, current, mode):
+    metrics[f'{mode}_loss'] = current['loss']
+    metrics[f'{mode}_acc_5m'] = current['acc5m'] 
+    metrics[f'{mode}_acc_3m'] = current['acc3m']
+    metrics[f'{mode}_acc_0m'] = current['acc0m']
 
 def accuracy(dists, threshold=3):
     """Calculating accuracy at 3 meters by default"""
@@ -88,24 +93,23 @@ def snap_to_grid(geodistance_nodes, node2pix, sn, pred_coord, conversion, level)
             best_node = node
             min_dist = dist.item()
     return best_node
-
-
-def distance_from_pixels(args, preds, mesh_conversions, info_elem, mode):
+    
+def distance_from_pixels(config, preds, mesh_conversions, scan_names, true_viewpoints, episode_ids, mode):
     """Calculate distances between model predictions and targets within a batch.
     Takes the propablity map over the pixels and returns the geodesic distance"""
-    node2pix = json.load(open(args.image_dir + "allScans_Node2pix.json"))
-    geodistance_nodes = json.load(open(args.geodistance_file))
+    node2pix = json.load(open(config['image_dir'] + "allScans_Node2pix.json"))
+    geodistance_nodes = json.load(open(config['geodistance_file']))
     distances, episode_predictions = [], []
-    dialogs, levels, scan_names, episode_ids, true_viewpoints = info_elem
     for pred, conversion, sn, tv, id in zip(
         preds, mesh_conversions, scan_names, true_viewpoints, episode_ids
     ):
+
         total_floors = len(set([v[2] for k, v in node2pix[sn].items()]))
         pred = nn.functional.interpolate(
             pred.unsqueeze(1), (700, 1200), mode="bilinear"
         ).squeeze(1)[:total_floors]
         pred_coord = np.unravel_index(pred.argmax(), pred.size())
-        convers = conversion.view(args.max_floors, 1, 1)[pred_coord[0].item()]
+        convers = conversion.view(config['max_floors'], 1, 1)[pred_coord[0].item()]
         pred_viewpoint = snap_to_grid(
             geodistance_nodes[sn],
             node2pix,
@@ -120,6 +124,35 @@ def distance_from_pixels(args, preds, mesh_conversions, info_elem, mode):
         episode_predictions.append([id, pred_viewpoint])
     return distances, episode_predictions
 
+# def distance_from_pixels(args, preds, mesh_conversions, info_elem, mode):
+#     """Calculate distances between model predictions and targets within a batch.
+#     Takes the propablity map over the pixels and returns the geodesic distance"""
+#     node2pix = json.load(open(args.image_dir + "allScans_Node2pix.json"))
+#     geodistance_nodes = json.load(open(args.geodistance_file))
+#     distances, episode_predictions = [], []
+#     dialogs, levels, scan_names, episode_ids, true_viewpoints = info_elem
+#     for pred, conversion, sn, tv, id in zip(
+#         preds, mesh_conversions, scan_names, true_viewpoints, episode_ids
+#     ):
+#         total_floors = len(set([v[2] for k, v in node2pix[sn].items()]))
+#         pred = nn.functional.interpolate(
+#             pred.unsqueeze(1), (700, 1200), mode="bilinear"
+#         ).squeeze(1)[:total_floors]
+#         pred_coord = np.unravel_index(pred.argmax(), pred.size())
+#         convers = conversion.view(args.max_floors, 1, 1)[pred_coord[0].item()]
+#         pred_viewpoint = snap_to_grid(
+#             geodistance_nodes[sn],
+#             node2pix,
+#             sn,
+#             [pred_coord[1].item(), pred_coord[2].item()],
+#             convers,
+#             pred_coord[0].item(),
+#         )
+#         if mode != "test":
+#             dist = geodistance_nodes[sn][tv][pred_viewpoint]
+#             distances.append(dist)
+#         episode_predictions.append([id, pred_viewpoint])
+#     return distances, episode_predictions
 
 # def annotateImageWithSegmentationData(image, annotationDict):
 #     image = np.array(image)
