@@ -29,14 +29,15 @@ from src.blocks import Up, ConvBlock, IdentityBlock
 # Change this to YAML
 config = {
     # Data Paths
-    'train_path' : '../../data/way_splits/train_data.json',
-    'valid_seen_path' : '../../data/way_splits/valSeen_data.json',
-    'valid_unseen_path': '../../data/way_splits/valUnseen_data.json',
+    'train_path' : '../../data/way_splits/train_debug_data.json',
+    'valid_seen_path' : '../../data/way_splits/valSeen_debug_data.json',
+    'valid_unseen_path': '../../data/way_splits/valUnseen_debug_data.json',
     'mesh2meters': '../../data/floorplans/pix2meshDistance.json',
     'image_dir': '../../data/floorplans/',
     'geodistance_file': '../../data/geodistance_nodes.json',
+    'save_path': '../../logs/checkpoints',
 
-    'device': 'cpu',
+    'device': 'cuda:0',
 
     # Hyper Parameters
     'max_floors': 5,
@@ -90,7 +91,7 @@ def training_loop(train_loader, valid_seen_loader, valid_unseen_loader, epochs, 
     for e in range(epochs): 
 
         model.train()
-        train_metrics = train_model(model, loss_fn, optimizer, scaler, config)
+        train_metrics = train_model(model, train_loader, loss_fn, optimizer, scaler, config)
         
         print(f'Train Loss: {train_metrics["loss"]}')
         print(f'Train Acc0m: {train_metrics["acc0m"]}')
@@ -136,21 +137,22 @@ def training_loop(train_loader, valid_seen_loader, valid_unseen_loader, epochs, 
 
 
 def main():
-
     train_dataset = LEDDataset(config['train_path'], config['image_dir'], config)
     valid_seen_dataset = LEDDataset(config['train_path'], config['image_dir'], config)
     valid_unseen_dataset = LEDDataset(config['train_path'], config['image_dir'], config)
-
+    print("Created Datasets, Creating DataLoaders")
     train_loader = DataLoader(train_dataset, batch_size=3)
     valid_seen_loader = DataLoader(valid_seen_dataset, batch_size=6)
     valid_unseen_loader = DataLoader(valid_unseen_dataset, batch_size=6)
-
+    print("Created DataLoaders, Instantiating Model")
     led_clip = LEDModel(config)
-
-
+    print("Instantiated Model, Configuring Training Parameters")
     loss_fn = nn.KLDivLoss(reduction="batchmean")
     optimizer = torch.optim.AdamW(led_clip.parameters(), lr=config['lr'], betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, amsgrad=False)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
     scaler = torch.cuda.amp.GradScaler()
-
+    print("Strating Training")
     training_loop(train_loader, valid_seen_loader, valid_unseen_loader, 20, led_clip, loss_fn, optimizer, scaler, scheduler, config) 
+
+
+main()

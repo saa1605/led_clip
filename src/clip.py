@@ -365,6 +365,11 @@ class ModifiedResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        x = self.prepool(x)
+        x = self.attnpool(x)
+        return x
+
+    def prepool(self, x):
         def stem(x):
             for conv, bn in [(self.conv1, self.bn1), (self.conv2, self.bn2), (self.conv3, self.bn3)]:
                 x = self.relu(bn(conv(x)))
@@ -377,10 +382,27 @@ class ModifiedResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-        x = self.attnpool(x)
-
         return x
 
+    def prepool_im(self, x):
+        """Run until prepool and save intermediate features"""
+        im = []
+        def stem(x):
+            for conv, bn in [(self.conv1, self.bn1), (self.conv2, self.bn2), (self.conv3, self.bn3)]:
+                x = self.relu(bn(conv(x)))
+                im.append(x)
+            x = self.avgpool(x)
+            im.append(x)
+            return x
+
+        x = x.type(self.conv1.weight.dtype)
+        x = stem(x)
+
+        for layer in [self.layer1, self.layer2, self.layer3, self.layer4]:
+            x = layer(x)
+            im.append(x)
+
+        return x, im
 
 
 class LayerNorm(nn.LayerNorm):
